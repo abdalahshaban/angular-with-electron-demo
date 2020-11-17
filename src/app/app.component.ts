@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { ImagesService } from './services/images.service';
 
 @Component({
   selector: 'app-root',
@@ -7,4 +8,10 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'electron-angular-demo';
+
+  constructor(private imageService: ImagesService) { }
+
+  ngOnInit(): void {
+    this.imageService.navigateDirectory('.');
+  }
 }
