@@ -58,14 +58,42 @@ try {
             createWindow();
         }
     });
+    // app.on('select-client-certificate', (event, webContents, url, list, callback) => {
+    //     event.preventDefault();
+    //     console.log(event, 'event');
+    //     console.log(webContents, 'webContents');
+    //     console.log(url, 'url');
+    //     console.log(list, 'list');
+    //     win.webContents.send("getTokenData", [event, webContents, url, list, callback]);
+    //     callback(list[0]);
+    // });
     electron_1.app.on('select-client-certificate', (event, webContents, url, list, callback) => {
+        console.log('select-client-certificate', url, list);
         event.preventDefault();
-        console.log(event, 'event');
-        console.log(webContents, 'webContents');
-        console.log(url, 'url');
-        console.log(list, 'list');
-        win.webContents.send("getTokenData", [event, webContents, url, list, callback]);
-        callback(list[0]);
+        electron_1.ipcMain.once('client-certificate-selected', (event, item) => {
+            console.log('selected:', item);
+            callback(item);
+        });
+        win.webContents.send('getTokenData', list);
+    });
+    electron_1.app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
+        console.log('certificate-error', url);
+        event.preventDefault();
+        //     const result = ... // do your validation here
+        // callback(result)
+    });
+    electron_1.app.on('login', (event, webContents, details, authInfo, callback) => {
+        console.log('login');
+        event.preventDefault();
+        // callback('username', 'secret')
+    });
+    electron_1.app.on('will-quit', (event) => {
+        console.log('will-quit');
+    });
+    electron_1.ipcMain.on('test', (event, arg) => {
+        console.log(event, 'event ipcMain in electron');
+        console.log(arg, 'arg ipcMain in electrom');
+        win.webContents.send('testRes', 'test ipcMain from electron');
     });
 }
 catch (e) {

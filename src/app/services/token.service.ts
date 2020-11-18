@@ -8,11 +8,17 @@ export class TokenService {
 
   constructor(private _electronService: ElectronService) {
     this.getTokenData();
+
+    this._electronService.ipcRenderer.on('testRes', (event, arg) => {
+      console.log(event, 'event testRes');
+      console.log(arg, 'arg testRes');
+    })
+
   }
 
   requestToken() {
     alert('insert hard token');
-
+    this._electronService.ipcRenderer.send('test', 'test angular')
   }
 
   getTokenData() {

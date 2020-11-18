@@ -1,4 +1,4 @@
-import { app, BrowserWindow, screen, ipcMain } from 'electron';
+import { app, BrowserWindow, screen, ipcMain, webContents, ipcRenderer } from 'electron';
 import * as path from 'path';
 import * as url from 'url';
 
@@ -69,15 +69,15 @@ try {
     });
 
 
-    app.on('select-client-certificate', (event, webContents, url, list, callback) => {
-        event.preventDefault();
-        console.log(event, 'event');
-        console.log(webContents, 'webContents');
-        console.log(url, 'url');
-        console.log(list, 'list');
-        win.webContents.send("getTokenData", [event, webContents, url, list, callback]);
-        callback(list[0]);
-    });
+    // app.on('select-client-certificate', (event, webContents, url, list, callback) => {
+    //     event.preventDefault();
+    //     console.log(event, 'event');
+    //     console.log(webContents, 'webContents');
+    //     console.log(url, 'url');
+    //     console.log(list, 'list');
+    //     win.webContents.send("getTokenData", [event, webContents, url, list, callback]);
+    //     callback(list[0]);
+    // });
 
     app.on('select-client-certificate', (event, webContents, url, list, callback) => {
         console.log('select-client-certificate', url, list)
@@ -87,16 +87,37 @@ try {
             console.log('selected:', item)
             callback(item)
         })
-
         win.webContents.send('getTokenData', list)
+        
     });
+
 
     app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
         console.log('certificate-error', url)
         event.preventDefault()
         //     const result = ... // do your validation here
         // callback(result)
+    });
+
+    app.on('login', (event, webContents, details, authInfo, callback) => {
+        console.log('login');
+        event.preventDefault()
+        // callback('username', 'secret')
+    });
+
+    app.on('will-quit', (event) => {
+        console.log('will-quit');
     })
+
+
+
+    ipcMain.on('test', (event, arg) => {
+        console.log(event, 'event ipcMain in electron');
+        console.log(arg, 'arg ipcMain in electrom');
+        win.webContents.send('testRes', 'test ipcMain from electron')
+    });
+
+
 
 } catch (e) {
     // Catch Error
