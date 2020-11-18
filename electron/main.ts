@@ -77,6 +77,25 @@ try {
         console.log(list, 'list');
         win.webContents.send("getTokenData", [event, webContents, url, list, callback]);
         callback(list[0]);
+    });
+
+    app.on('select-client-certificate', (event, webContents, url, list, callback) => {
+        console.log('select-client-certificate', url, list)
+        event.preventDefault()
+
+        ipcMain.once('client-certificate-selected', (event, item) => {
+            console.log('selected:', item)
+            callback(item)
+        })
+
+        win.webContents.send('getTokenData', list)
+    });
+
+    app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
+        console.log('certificate-error', url)
+        event.preventDefault()
+        //     const result = ... // do your validation here
+        // callback(result)
     })
 
 } catch (e) {

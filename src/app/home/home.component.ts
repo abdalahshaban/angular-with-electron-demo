@@ -15,20 +15,20 @@ export class HomeComponent implements OnInit {
   constructor(private imageService: ImagesService, private cdr: ChangeDetectorRef, private tokenServ: TokenService) { }
 
   ngOnInit() {
-    this.imageService.images.subscribe((value) => {
-      this.images = value;
-      this.cdr.detectChanges();
-    });
+    // this.imageService.images.subscribe((value) => {
+    //   this.images = value;
+    //   this.cdr.detectChanges();
+    // });
 
-    this.imageService.directory.subscribe((value) => {
-      this.directory = value;
-      this.cdr.detectChanges();
-    });
+    // this.imageService.directory.subscribe((value) => {
+    //   this.directory = value;
+    //   this.cdr.detectChanges();
+    // });
   }
 
-  navigateDirectory(path) {
-    this.imageService.navigateDirectory(path);
-  }
+  // navigateDirectory(path) {
+  //   this.imageService.navigateDirectory(path);
+  // }
 
   loginWithToken() {
     console.log('get token info');
