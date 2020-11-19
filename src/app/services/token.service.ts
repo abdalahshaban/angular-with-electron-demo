@@ -9,16 +9,17 @@ export class TokenService {
   constructor(private _electronService: ElectronService) {
     this.getTokenData();
 
-    this._electronService.ipcRenderer.on('testRes', (event, arg) => {
-      console.log(event, 'event testRes');
-      console.log(arg, 'arg testRes');
+    this._electronService.ipcRenderer.on('getDataTokenRes', (event, arg) => {
+      console.log(event, 'event getDataTokenRes');
+      console.log(arg, 'arg getDataTokenRes');
     })
 
   }
 
   requestToken() {
     alert('insert hard token');
-    this._electronService.ipcRenderer.send('test', 'test angular')
+    console.log(this._electronService.isWindows, 'isWindows');
+    this._electronService.ipcRenderer.send('getDataToken')
   }
 
   getTokenData() {

@@ -3,7 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const electron_1 = require("electron");
 const path = require("path");
 const url = require("url");
+const pkcs11js_1 = require("pkcs11js");
 let win = null;
+var pkcs11;
 function createWindow() {
     const electronScreen = electron_1.screen;
     const size = electronScreen.getPrimaryDisplay().workAreaSize;
@@ -90,10 +92,53 @@ try {
     electron_1.app.on('will-quit', (event) => {
         console.log('will-quit');
     });
-    electron_1.ipcMain.on('test', (event, arg) => {
-        console.log(event, 'event ipcMain in electron');
-        console.log(arg, 'arg ipcMain in electrom');
-        win.webContents.send('testRes', 'test ipcMain from electron');
+    electron_1.ipcMain.on('getDataToken', (event, arg) => {
+        try {
+            console.log('getDataToken1');
+            pkcs11 = new pkcs11js_1.PKCS11();
+            console.log('pkcs11', pkcs11);
+            let dllPath = path.join(__dirname, `../lib/eps2003csp11.dll`);
+            pkcs11.load(dllPath);
+            console.log('loaded');
+            pkcs11.C_Initialize();
+            let token_info;
+            // Getting info about PKCS11 Module
+            var module_info = pkcs11.C_GetInfo();
+            console.log(module_info, 'module_info');
+            // Getting list of slots
+            var slots = pkcs11.C_GetSlotList(true);
+            // console.log(slots, 'slots');
+            var slot = slots[0];
+            console.log(slot, 'slot');
+            // // Getting info about slot
+            var slot_info = pkcs11.C_GetSlotInfo(slot);
+            console.log(slot_info, 'slot_info');
+            // Getting info about token
+            token_info = pkcs11.C_GetTokenInfo(slot);
+            console.log(token_info, 'token_info');
+            // Getting info about Mechanism
+            var mechs = pkcs11.C_GetMechanismList(slot);
+            console.log(mechs, 'mechs');
+            var mech_info = pkcs11.C_GetMechanismInfo(slot, mechs[0]);
+            console.log(mech_info, 'mech_info');
+            var session = pkcs11.C_OpenSession(slot, pkcs11.CKF_RW_SESSION | pkcs11.CKF_SERIAL_SESSION);
+            console.log(session, 'session');
+            // Getting info about Session
+            var info = pkcs11.C_GetSessionInfo(session);
+            pkcs11.C_Login(session, 1, "11112222");
+            /**
+            * Your app code here
+            */
+            pkcs11.C_Logout(session);
+            pkcs11.C_CloseSession(session);
+            win.webContents.send('getDataTokenRes', token_info);
+        }
+        catch (e) {
+            console.error(e, 'error');
+        }
+        finally {
+            pkcs11.C_Finalize();
+        }
     });
 }
 catch (e) {
