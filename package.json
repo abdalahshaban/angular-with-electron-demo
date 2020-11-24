@@ -1,15 +1,38 @@
 {
-  "name": "electron-angular-demo",
-  "version": "0.0.0",
+  "name": "electron-angular-demo-name",
+  "version": "3.0.0",
   "main": "electron/dist/main.js",
+  "description": "description APP",
+  "author": {
+    "name": "abdalah",
+    "email": "abdalah@yahoo.com"
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "buildAngular": "ng build",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "electron": "ng build --base-href ./ && tsc --p electron && electron ."
+    "electron": "ng build --base-href ./ && tsc --p electron && electron .",
+    "build:win": " electron-builder"
+  },
+  "build": {
+    "appId": "com.ISEC.app",
+    "productName": "Driver For PKCS11",
+    "directories": {
+      "output": "../win-build-2"
+    },
+    "compression": "maximum",
+    "win": {
+      "icon": "./electron/settings.png",
+      "artifactName": "Driver For PKCS11",
+      "target": [
+        {
+          "target": "msi"
+        }
+      ]
+    }
   },
   "private": true,
   "dependencies": {
@@ -21,7 +44,9 @@
     "@angular/platform-browser": "~8.2.14",
     "@angular/platform-browser-dynamic": "~8.2.14",
     "@angular/router": "~8.2.14",
-    "electron": "^11.0.1",
+    "auto-launch": "^5.0.5",
+    "electron-alert": "^0.1.11",
+    "electron-process": "^0.2.0",
     "ngx-electron": "^2.2.0",
     "path": "^0.12.7",
     "pkcs11js": "^1.0.22",
@@ -38,7 +63,10 @@
     "@types/jasminewd2": "~2.0.3",
     "@types/node": "~8.9.4",
     "codelyzer": "^5.0.0",
-    "electron-rebuild": "^2.3.2",
+    "electron": "^11.0.2",
+    "electron-builder": "^22.9.1",
+    "electron-packager": "^15.1.0",
+    "electron-wix-msi": "^3.0.4",
     "jasmine-core": "~3.4.0",
     "jasmine-spec-reporter": "~4.2.1",
     "karma": "~4.1.0",

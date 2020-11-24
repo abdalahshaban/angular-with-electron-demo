@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-const electron = (<any>window).require('electron');
+// const electron = (<any>window).require('electron');
 
 @Injectable({
   providedIn: 'root'

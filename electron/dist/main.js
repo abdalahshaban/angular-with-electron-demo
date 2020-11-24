@@ -1,11 +1,24 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const tslib_1 = require("tslib");
 const electron_1 = require("electron");
 const path = require("path");
 const url = require("url");
 const pkcs11js_1 = require("pkcs11js");
+var AutoLaunch = require('auto-launch');
+var autoLauncher = new AutoLaunch({
+    name: "MyApp"
+});
+autoLauncher.isEnabled().then(function (isEnabled) {
+    if (isEnabled)
+        return;
+    autoLauncher.enable();
+}).catch(function (err) {
+    throw err;
+});
 let win = null;
 var pkcs11;
+let tray = null;
 function createWindow() {
     const electronScreen = electron_1.screen;
     const size = electronScreen.getPrimaryDisplay().workAreaSize;
@@ -15,9 +28,14 @@ function createWindow() {
         // y: 0,
         // width: size.width,
         // height: size.height,
-        width: 800,
-        height: 600,
+        // width: 800,
+        // height: 600,
+        frame: false,
+        minimizable: true,
+        show: false,
+        backgroundColor: '#FFFF00',
         webPreferences: {
+            sandbox: true,
             // webSecurity: false,
             nodeIntegration: true,
             contextIsolation: false,
@@ -37,6 +55,15 @@ function createWindow() {
         // when you should delete the corresponding element.
         win = null;
     });
+    win.on('restore', function (event) {
+        win.show();
+        tray.destroy();
+    });
+    // win.on('minimize', function (event) {
+    //     event.preventDefault();
+    //     win.hide();
+    //     tray = createTray();
+    // });
     return win;
 }
 try {
@@ -44,12 +71,63 @@ try {
     // initialization and is ready to create browser windows.
     // Some APIs can only be used after this event occurs.
     // Added 400 ms to fix the black background issue while using transparent window. More detais at https://github.com/electron/electron/issues/15947
-    electron_1.app.on('ready', () => setTimeout(createWindow, 400));
+    electron_1.app.on('ready', () => setTimeout(() => {
+        createWindow();
+        // if (win !== null) {
+        // }
+        win.hide();
+        tray = createTray();
+    }, 400));
+    function createTray() {
+        let appIcon = new electron_1.Tray(path.join(__dirname, "../cloud_fun.ico"));
+        const contextMenu = electron_1.Menu.buildFromTemplate([
+            {
+                label: 'Show', click: function () {
+                    // win.show();
+                    new electron_1.BrowserWindow({
+                        icon: '/../cloud_fun.ico',
+                        // x: 0,
+                        // y: 0,
+                        // width: size.width,
+                        // height: size.height,
+                        width: 800,
+                        height: 600,
+                        // frame: false,
+                        // minimizable: true,
+                        // show: false,
+                        backgroundColor: '#808000',
+                        webPreferences: {
+                            sandbox: true,
+                            // webSecurity: false,
+                            nodeIntegration: true,
+                            contextIsolation: false,
+                            enableRemoteModule: true // true if you want to run 2e2 test  with Spectron or use remote module in renderer context (ie. Angular)
+                        },
+                    });
+                }
+            },
+            {
+                label: 'Exit', click: function () {
+                    electron_1.app.quit();
+                }
+            },
+        ]);
+        appIcon.on('double-click', function (event) {
+            win.show();
+        });
+        appIcon.setToolTip('AppDriver');
+        appIcon.setContextMenu(contextMenu);
+        return appIcon;
+    }
     // Quit when all windows are closed.
     electron_1.app.on('window-all-closed', () => {
         // On OS X it is common for applications and their menu bar
         // to stay active until the user quits explicitly with Cmd + Q
         if (process.platform !== 'darwin') {
+            if (win !== null) {
+                win.hide();
+                createTray();
+            }
             electron_1.app.quit();
         }
     });
@@ -74,7 +152,6 @@ try {
         event.preventDefault();
         electron_1.ipcMain.once('client-certificate-selected', (event, item) => {
             console.log('selected:', item);
-            callback(item);
         });
         win.webContents.send('getTokenData', list);
     });
@@ -92,7 +169,7 @@ try {
     electron_1.app.on('will-quit', (event) => {
         console.log('will-quit');
     });
-    electron_1.ipcMain.on('getDataToken', (event, arg) => {
+    electron_1.ipcMain.on('getDataToken', (event, arg) => tslib_1.__awaiter(this, void 0, void 0, function* () {
         try {
             console.log('getDataToken1');
             pkcs11 = new pkcs11js_1.PKCS11();
@@ -103,8 +180,27 @@ try {
             pkcs11.C_Initialize();
             let token_info;
             // Getting info about PKCS11 Module
-            var module_info = pkcs11.C_GetInfo();
+            var module_info = yield pkcs11.C_GetInfo();
             console.log(module_info, 'module_info');
+            const options = {
+                body: 'Notification Body',
+                title: 'notify',
+                closeButtonText: 'close button',
+                replyPlaceholder: 'replyPlaceholder',
+                urgency: 'critical',
+            };
+            electron_1.Notification;
+            const notification = new electron_1.Notification(options);
+            notification.on('click', (event) => {
+                event.preventDefault();
+                console.log('event on');
+            });
+            notification.on('close', (event) => {
+                console.log(event, 'close');
+                // console.log(event.preventDefault());
+            });
+            notification.show();
+            win.webContents.send('getDataTokenRes', module_info);
             // Getting list of slots
             var slots = pkcs11.C_GetSlotList(true);
             // console.log(slots, 'slots');
@@ -127,11 +223,11 @@ try {
             var info = pkcs11.C_GetSessionInfo(session);
             pkcs11.C_Login(session, 1, "11112222");
             /**
-            * Your app code here
-            */
+             * Your app code here
+             */
             pkcs11.C_Logout(session);
             pkcs11.C_CloseSession(session);
-            win.webContents.send('getDataTokenRes', token_info);
+            win.webContents.send('getDataTokenRes', module_info);
         }
         catch (e) {
             console.error(e, 'error');
@@ -139,6 +235,9 @@ try {
         finally {
             pkcs11.C_Finalize();
         }
+    }));
+    electron_1.ipcMain.on('test', (event, arg) => {
+        console.log('test in electron');
     });
 }
 catch (e) {
