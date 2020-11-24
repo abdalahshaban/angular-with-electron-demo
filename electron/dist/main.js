@@ -5,6 +5,27 @@ const electron_1 = require("electron");
 const path = require("path");
 const url = require("url");
 const pkcs11js_1 = require("pkcs11js");
+let win = null;
+var pkcs11;
+let tray = null;
+const gotTheLock = electron_1.app.requestSingleInstanceLock();
+if (!gotTheLock) {
+    electron_1.app.quit();
+}
+else {
+    electron_1.app.on('second-instance', (event, commandLine, workingDirectory) => {
+        // Someone tried to run a second instance, we should focus our window.
+        if (win) {
+            if (win.isMinimized())
+                win.restore();
+            win.focus();
+        }
+    });
+    // Create win, load the rest of the app, etc...
+    electron_1.app.whenReady().then(() => {
+        win = createWindow();
+    });
+}
 var AutoLaunch = require('auto-launch');
 var autoLauncher = new AutoLaunch({
     name: "MyApp"
@@ -16,9 +37,6 @@ autoLauncher.isEnabled().then(function (isEnabled) {
 }).catch(function (err) {
     throw err;
 });
-let win = null;
-var pkcs11;
-let tray = null;
 function createWindow() {
     const electronScreen = electron_1.screen;
     const size = electronScreen.getPrimaryDisplay().workAreaSize;
@@ -34,6 +52,7 @@ function createWindow() {
         minimizable: true,
         show: false,
         backgroundColor: '#FFFF00',
+        icon: electron_1.nativeImage.createFromPath(__dirname + '../cloud_fun.ico'),
         webPreferences: {
             sandbox: true,
             // webSecurity: false,
@@ -138,15 +157,6 @@ try {
             createWindow();
         }
     });
-    // app.on('select-client-certificate', (event, webContents, url, list, callback) => {
-    //     event.preventDefault();
-    //     console.log(event, 'event');
-    //     console.log(webContents, 'webContents');
-    //     console.log(url, 'url');
-    //     console.log(list, 'list');
-    //     win.webContents.send("getTokenData", [event, webContents, url, list, callback]);
-    //     callback(list[0]);
-    // });
     electron_1.app.on('select-client-certificate', (event, webContents, url, list, callback) => {
         console.log('select-client-certificate', url, list);
         event.preventDefault();

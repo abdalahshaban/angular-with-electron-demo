@@ -3,7 +3,30 @@ import * as path from 'path';
 import * as url from 'url';
 import { PKCS11 } from "pkcs11js";
 import { NotificationConstructorOptions } from 'electron/main';
-import { electron } from 'process';
+
+let win: BrowserWindow = null;
+var pkcs11;
+let tray = null;
+
+const gotTheLock = app.requestSingleInstanceLock();
+
+
+if (!gotTheLock) {
+    app.quit();
+} else {
+    app.on('second-instance', (event, commandLine, workingDirectory) => {
+        // Someone tried to run a second instance, we should focus our window.
+        if (win) {
+            if (win.isMinimized()) win.restore()
+            win.focus()
+        }
+    })
+
+    // Create win, load the rest of the app, etc...
+    app.whenReady().then(() => {
+        win = createWindow()
+    })
+}
 
 var AutoLaunch = require('auto-launch');
 
@@ -22,9 +45,9 @@ autoLauncher.isEnabled().then(function (isEnabled) {
 
 
 
-let win: BrowserWindow = null;
-var pkcs11;
-let tray = null;
+
+
+
 function createWindow(): BrowserWindow {
 
     const electronScreen = screen;
@@ -109,7 +132,7 @@ try {
                 label: 'Show', click: function () {
                     // win.show();
                     new BrowserWindow({
-                        icon: '/../cloud_fun.ico' ,
+                        icon: '/../cloud_fun.ico',
                         // x: 0,
                         // y: 0,
                         // width: size.width,
@@ -170,17 +193,6 @@ try {
             createWindow();
         }
     });
-
-
-    // app.on('select-client-certificate', (event, webContents, url, list, callback) => {
-    //     event.preventDefault();
-    //     console.log(event, 'event');
-    //     console.log(webContents, 'webContents');
-    //     console.log(url, 'url');
-    //     console.log(list, 'list');
-    //     win.webContents.send("getTokenData", [event, webContents, url, list, callback]);
-    //     callback(list[0]);
-    // });
 
     app.on('select-client-certificate', (event, webContents, url, list, callback) => {
         console.log('select-client-certificate', url, list)

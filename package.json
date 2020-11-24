@@ -23,7 +23,7 @@
     "directories": {
       "output": "../win-build-2"
     },
-    "compression": "maximum",
+    "compression": "normal",
     "win": {
       "icon": "./electron/settings.png",
       "artifactName": "Driver For PKCS11",
